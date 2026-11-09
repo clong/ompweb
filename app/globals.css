@@ -215,31 +215,33 @@
   --overlay-backdrop: color-mix(in srgb, var(--text) 24%, transparent);
 }
 
-/* Amber Terminal (dark), sampled from the owner's terminal reference.
-   The canvas, amber, teal, green and plum are sampled colors. Muted UI text
-   is lifted above the reference's faint brown so small controls stay legible. */
+/* Amber Terminal (dark). Keep the reference canvas and amber conversation
+   text; distinguish navigation with teal, headings with plum, and general
+   UI text with warm ivory. Muted controls use a cooler neutral. */
 html.omp {
   color-scheme: dark;
   --bg: #151217;
   --bg-panel: #110E12;
   --bg-hover: #241C21;
-  --bg-selected: #33261E;
-  --border: #33261E;
-  --text: #EA9C46;
-  --text-muted: #B38B64;
-  --text-dim: #AA8F73;
-  --accent: #EA9C46;
-  --accent-strong: #EA9C46;
-  --accent-hover: #F4B76C;
-  --accent-2: #52A1A7;
-  --user-bg: #211A20;
+  --bg-selected: #282331;
+  --border: #302832;
+  --text: #D9CFC3;
+  --text-muted: #AEA2AF;
+  --text-dim: #A295A6;
+  --accent: #70B9BE;
+  --accent-strong: #70B9BE;
+  --accent-hover: #A1D3D6;
+  --accent-2: #70B9BE;
+  --terminal-amber: #EA9C46;
+  --terminal-plum: #C48CB9;
+  --user-bg: #241C29;
   --tool-bg: #110E12;
-  --bg-subtle: rgba(234,156,70,0.04);
+  --bg-subtle: rgba(112,185,190,0.04);
   --status-error: #E76B55;
   --status-success: #70D174;
   --status-warning: #EA9C46;
   --status-modified: #D48E40;
-  --status-renamed: #B064A4;
+  --status-renamed: #C48CB9;
   --on-accent: #151217;
   --overlay-backdrop: rgba(9,7,10,0.72);
   --shadow-card: 0 1px 2px rgba(0,0,0,0.35);
@@ -247,7 +249,7 @@ html.omp {
   --shadow-modal: 0 12px 40px rgba(0,0,0,0.6);
 }
 
-/* Flat terminal canvas, amber selection and teal keyboard focus. */
+/* Flat terminal canvas, teal selection and keyboard focus. */
 html.omp body {
   background: var(--bg);
 }
@@ -265,12 +267,36 @@ html.omp .tool-call-command-prompt {
   color: var(--accent-2);
 }
 
+html.omp .activity-row-tool-error {
+  color: var(--status-error);
+}
+
+/* Color roles keep the interface from becoming monochrome amber. */
+html.omp .markdown-body {
+  color: var(--terminal-amber);
+}
+html.omp .markdown-user-message {
+  color: var(--text);
+}
+html.omp .markdown-body :is(h1, h2, h3, h4, h5, h6),
+html.omp .empty-session-intro h1,
+html.omp .markdown-code-lang,
+html.omp .thinking-output:not(.thinking-output-error) {
+  color: var(--terminal-plum);
+}
+html.omp .markdown-body .markdown-inline-code {
+  color: var(--accent-2);
+}
+html.omp .sidebar-nav-buttons {
+  --text-dim: var(--accent-2);
+}
+
 /* Prism supplies inline colors. Scope these overrides to this theme so code
    and file previews share its palette while other themes keep their syntax. */
 html.omp pre[class*="language-"],
 html.omp code[class*="language-"],
 html.omp .token {
-  color: var(--text) !important;
+  color: var(--terminal-amber) !important;
 }
 html.omp .token.comment,
 html.omp .token.prolog,
@@ -335,7 +361,7 @@ html.omp .markdown-body a:focus-visible::after {
   transform: scaleX(1);
 }
 
-/* Terminal empty-state wordmark: a teal→amber sheen
+/* Terminal empty-state wordmark: a teal→ivory sheen
    that sweeps across every 9s. Static gradient text when reduced motion. */
 html.omp .omp-wordmark {
   background: linear-gradient(105deg, var(--accent-2) 38%, var(--text) 50%, var(--accent-2) 62%);

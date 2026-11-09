@@ -1883,8 +1883,8 @@ Location: `~/.omp/agent/sessions/<encoded-cwd>/<timestamp>_<uuid>.jsonl`
 
 Warm-paper (light), warm-ember (dark), and the default Amber Terminal (`omp`)
 palettes use semantic CSS variables. Amber Terminal matches the supplied plum-black,
-amber, teal, and green terminal reference; its muted control text is brighter for
-legibility. Components must consume these variables — no hardcoded colors.
+amber, teal, and green terminal reference. Conversation text is amber; UI text is
+warm ivory; controls and links are teal; headings and reasoning are plum. Components must consume these variables — no hardcoded colors.
 
 ```
 color:  --bg --bg-panel --bg-hover --bg-selected --border --bg-subtle
