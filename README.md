@@ -26,6 +26,10 @@ A clean, modern web UI for the [oh-my-pi (omp)](https://github.com/can1357/oh-my
 
 </details>
 
+## iPhone and iPad app
+
+This fork includes a native iOS shell for the deployed portal in [`native/ios`](native/ios/README.md). It preserves the web interface and theme, saves sign-in in private WebKit storage, and adds native navigation and file sharing. Open `native/ios/OMPWeb.xcodeproj` to build it.
+
 ## Requirements
 
 - [omp](https://github.com/can1357/oh-my-pi) installed and available on your `PATH` (or specified via `OMP_WEB_OMP_BIN`)

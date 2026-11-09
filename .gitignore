@@ -92,3 +92,11 @@ bin/tray-publish/
 # graphify: track only the graph; each clone rebuilds the rest
 graphify-out/*
 !graphify-out/graph.json
+
+# iOS local build and signing state
+DerivedData/
+*.xcarchive/
+*.ipa
+xcuserdata/
+*.xcuserstate
+*.mobileprovision
