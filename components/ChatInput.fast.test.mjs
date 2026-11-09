@@ -18,48 +18,46 @@ afterEach(() => {
   delete window.matchMedia;
 });
 
-function renderSlow(props) {
+function renderFast(props) {
   const changes = [];
   render(React.createElement(ChatInput, {
     async onSend() { return { status: "accepted" }; },
     onAbort() {},
     isStreaming: false,
-    slowModeSupported: true,
-    slowModeScope: "session",
-    onSlowModeChange: (enabled) => { changes.push(enabled); },
+    fastModeSupported: true,
+    onFastModeChange: (enabled) => { changes.push(enabled); },
     ...props,
   }));
-  return { changes, button: screen.getByRole("button", { name: en["chatInput.slowLabel"] }) };
+  return { changes, button: screen.getByRole("button", { name: en["chatInput.fastLabel"] }) };
 }
 
 for (const enabled of [true, false]) {
-  test(`clicking the ${enabled ? "pressed" : "unpressed"} Slow toggle asks for ${!enabled}`, async () => {
+  test(`clicking the ${enabled ? "pressed" : "unpressed"} Fast toggle asks for ${!enabled}`, async () => {
     const user = userEvent.setup();
-    const { changes, button } = renderSlow({ slowModeEnabled: enabled });
+    const { changes, button } = renderFast({ fastModeEnabled: enabled });
     assert.equal(button.getAttribute("aria-pressed"), String(enabled));
     await user.click(button);
     assert.deepEqual(changes, [!enabled]);
   });
 }
 
-test("the Slow toggle is disabled and inert while a run streams", async () => {
+test("the Fast toggle is disabled and inert while a run streams", async () => {
   const user = userEvent.setup();
-  const { changes, button } = renderSlow({ slowModeEnabled: false, isStreaming: true });
+  const { changes, button } = renderFast({ fastModeEnabled: false, isStreaming: true });
   assert.equal(button.disabled, true);
   await user.click(button);
   assert.deepEqual(changes, []);
 });
 
-test("the Slow tooltip states the scope omp reports", () => {
-  const titles = {};
-  for (const scope of ["global", "session", undefined]) {
-    const { button } = renderSlow({ slowModeScope: scope });
-    titles[String(scope)] = button.getAttribute("title");
-    cleanup();
-  }
-  assert.equal(titles.global, en["chatInput.slowTitleGlobal"]);
-  assert.equal(titles.session, en["chatInput.slowTitleSession"]);
-  assert.notEqual(titles.global, titles.session);
-  // A supported model without a reported scope never claims a shared setting.
-  assert.equal(titles.undefined, en["chatInput.slowTitleSession"]);
+test("Fast uses a lightning icon, describes priority, and replaces the Slow control", () => {
+  const { button } = renderFast({ fastModeEnabled: false });
+  assert.ok(button.querySelector("svg"));
+  assert.match(button.title, /priority processing/);
+  assert.equal(screen.queryByRole("button", { name: en["chatInput.slowLabel"] }), null);
+});
+
+test("the Fast toggle reports when OMP enabled it but the active model cannot realize it", () => {
+  const { button } = renderFast({ fastModeEnabled: true, fastModeActive: false });
+  assert.equal(button.getAttribute("aria-pressed"), "true");
+  assert.match(button.title, /inactive for this model/);
 });

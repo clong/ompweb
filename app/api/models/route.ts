@@ -4,10 +4,12 @@ import { disposeUtilityRpc, runUtilityCommand, type OmpModel } from "@/lib/omp/r
 import { getModelsConfigPath } from "@/lib/omp/paths";
 import { readDisabledProviders } from "@/lib/omp/model-roles";
 import { readAnthropicSlowMode } from "@/lib/omp/settings-config";
+import { resolveHostOrError } from "@/lib/api-utils";
+import { withRemoteModelRuntime } from "@/lib/hosts/model-runtime";
 
-// The omp model registry (auth + models.yml) is global, not per-cwd, so one
-// cache entry serves every request. The ?cwd= query parameter is still
-// accepted for client compatibility but no longer affects the result.
+// Each host's OMP model registry (auth + models.yml) is global, not per-cwd.
+// Remote cache entries are keyed by host; this key is only for main's registry.
+// The legacy ?cwd= parameter no longer affects the result.
 const MODELS_CACHE_KEY = "global";
 
 declare global {
@@ -56,6 +58,11 @@ function thinkingLevelsFor(model: OmpModel): string[] {
 // OMP's /fast maps to a priority service tier. These are the provider families
 // OMP currently resolves for that control (ModelControls.setFastMode).
 function supportsFastMode(model: OmpModel): boolean {
+  // Codex discovers tiers per model. Match OMP's own priority gate: a
+  // nonempty advertised list must include priority; absent/empty is unreported.
+  if (model.provider === "openai-codex") {
+    return !model.serviceTiers?.length || model.serviceTiers.includes("priority");
+  }
   return model.provider === "anthropic" || model.provider === "openai" || model.provider === "google";
 }
 
@@ -65,8 +72,8 @@ function supportsFastMode(model: OmpModel): boolean {
 // ponytail: provider-only; OpenRouter's openai/google ids need omp's model identity.
 const SLOW_MODE_PROVIDERS: Record<string, true> = { anthropic: true, openai: true, "openai-codex": true, google: true, "google-vertex": true };
 
-async function loadModels(): Promise<ModelsData> {
-  const availableResponse = await runUtilityCommand<{ models?: unknown }>(
+async function loadModels(runCommand = runUtilityCommand, disabledProviders = readDisabledProviders()): Promise<ModelsData> {
+  const availableResponse = await runCommand<{ models?: unknown }>(
     { type: "get_available_models" },
     120_000,
   );
@@ -88,7 +95,7 @@ async function loadModels(): Promise<ModelsData> {
   const modelList = available
     .map((m) => ({ id: m.id, name: m.name, provider: m.provider, thinkingLevels: thinkingLevelsFor(m), supportsFastMode: supportsFastMode(m), supportsSlowMode: SLOW_MODE_PROVIDERS[m.provider] === true, contextWindow: m.contextWindow ?? undefined, maxTokens: m.maxTokens ?? undefined }))
     .sort(compareModelEntries);
-  const loginResponse = await runUtilityCommand<{ providers?: unknown }>(
+  const loginResponse = await runCommand<{ providers?: unknown }>(
     { type: "get_login_providers" },
     30_000,
   );
@@ -100,7 +107,6 @@ async function loadModels(): Promise<ModelsData> {
       && typeof (provider as { authenticated?: unknown }).authenticated === "boolean"
     ))
     : [];
-  const disabledProviders = readDisabledProviders();
   const connectedProviders = loginProviders
     .filter((provider) => provider.authenticated)
     .map((provider) => ({ id: provider.id, name: provider.name, disabled: disabledProviders.has(provider.id) }));
@@ -114,7 +120,7 @@ async function loadModels(): Promise<ModelsData> {
   // process reports it via get_state.
   let defaultModel: { provider: string; modelId: string } | null = null;
   try {
-    const state = await runUtilityCommand<{ model?: { provider?: string; id?: string } }>(
+    const state = await runCommand<{ model?: { provider?: string; id?: string } }>(
       { type: "get_state" },
       30_000,
     );
@@ -140,7 +146,20 @@ const EMPTY_MODELS: ModelsData = {
   thinkingLevels: {},
 };
 
-export async function GET() {
+export async function GET(request?: Request) {
+  const hostId = request ? new URL(request.url).searchParams.get("hostId") : null;
+  if (hostId && hostId !== "local") {
+    const target = resolveHostOrError(hostId);
+    if ("response" in target) return target.response;
+    try {
+      // A remote catalog is scoped to that host, not main's credentials or
+      // models.yml. Existing daemon builds already support a fresh RPC runtime.
+      return Response.json(await loadModelsWithCache(`host:${target.host.id}`, () =>
+        withRemoteModelRuntime(target.host, (run) => loadModels(run, new Set()))));
+    } catch {
+      return Response.json(withSafeModelLoadFailure(EMPTY_MODELS));
+    }
+  }
   refreshModelsIfConfigChanged();
   // Outside the cache: `/slow` on a Claude model rewrites config.yml.
   const anthropicSlowMode = readAnthropicSlowMode();

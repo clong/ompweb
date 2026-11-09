@@ -42,6 +42,7 @@ export interface OmpModel {
   input?: string[];
   contextWindow?: number | null;
   maxTokens?: number | null;
+  serviceTiers?: string[];
   cost?: { input?: number; output?: number; cacheRead?: number; cacheWrite?: number };
 }
 

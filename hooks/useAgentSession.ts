@@ -3841,16 +3841,21 @@ export function useAgentSession(opts: UseAgentSessionOptions) {
     }
   }, [beginLocalCompaction, endLocalCompaction, isCompacting, loadSession, refreshLiveModelState]);
 
-  // A remote workspace's path means nothing on this machine: its models come from the global list.
+  // A remote workspace uses its owning host's model registry and credentials.
   const remoteWorkspace = session ? remoteHostId(session.hostId) !== undefined : newSessionHostId !== undefined;
   const loadModels = useCallback(async (signal?: AbortSignal) => {
     setModelsLoading(true);
     try {
       const modelCwd = remoteWorkspace ? "" : newSessionCwd ?? session?.cwd ?? "";
-      const modelsUrl = modelCwd ? `/api/models?cwd=${encodeURIComponent(modelCwd)}` : "/api/models";
+      const modelHostId = session?.hostId ?? newSessionHostId;
+      const params = new URLSearchParams();
+      if (modelCwd) params.set("cwd", modelCwd);
+      if (modelHostId && modelHostId !== "local") params.set("hostId", modelHostId);
+      const modelsUrl = params.size ? `/api/models?${params}` : "/api/models";
       const res = await fetch(modelsUrl, { cache: "no-store", ...(signal ? { signal } : {}) });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const d = await res.json() as ModelsResponse;
+      if (signal?.aborted) return;
       setModelNames(d.models);
       setModelError(d.modelError ?? null);
       setModelThinkingLevels(d.thinkingLevels ?? {});
@@ -3872,7 +3877,7 @@ export function useAgentSession(opts: UseAgentSessionOptions) {
     } finally {
       setModelsLoading(false);
     }
-  }, [isNew, newSessionCwd, remoteWorkspace, session?.cwd]);
+  }, [isNew, newSessionCwd, newSessionHostId, remoteWorkspace, session?.cwd, session?.hostId]);
 
   /** Ask a side question, or a follow-up in `recordId`'s topic. It runs beside
    * any main turn and never enters the transcript. False = refused (toasted),

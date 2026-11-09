@@ -442,7 +442,7 @@ export function ChatWindow({ session, newSessionCwd, newSessionHostId, hostStatu
 
   const {
     loading, error, messages, entryIds, showPreCompactionHistory, streamState,
-    agentRunning, bashRunning, pendingBash, deferredBash, modelNames, modelList, modelsLoading, modelError, modelThinkingLevels, modelThinkingLevelMaps, thinkingLevel, fastModeEnabled, fastModeActive, slowModeSupported, slowModeEnabled, slowModeScope, usageLimit,
+    agentRunning, bashRunning, pendingBash, deferredBash, modelNames, modelList, modelsLoading, modelError, modelThinkingLevels, modelThinkingLevelMaps, thinkingLevel, fastModeEnabled, fastModeActive, usageLimit,
     externalRunActive,
     toolPreset,
     liveModelMeta,
@@ -462,7 +462,7 @@ export function ChatWindow({ session, newSessionCwd, newSessionHostId, hostStatu
     heldMessages, deleteHeldMessage,
     removeQueuedMessage, promoteQueuedToSteer,
     handleBuiltinSlashCommand, togglePreCompactionHistory,
-    handleThinkingLevelChange, handleFastModeChange, handleSlowModeChange, handleCycleModel, handleCycleThinkingLevel, handleAbortRetry, loadSlashCommands,
+    handleThinkingLevelChange, handleFastModeChange, handleCycleModel, handleCycleThinkingLevel, handleAbortRetry, loadSlashCommands,
     handleToolPresetChange,
     btw, askBtw,
   } = useAgentSession({
@@ -1041,10 +1041,6 @@ export function ChatWindow({ session, newSessionCwd, newSessionHostId, hostStatu
       usageLimit={usageLimit}
       fastModeSupported={Boolean(displayModelValue && modelList.some((entry) => entry.provider === displayModelValue.provider && entry.id === displayModelValue.modelId && entry.supportsFastMode))}
       onFastModeChange={session || isNew ? handleFastModeChange : undefined}
-      slowModeSupported={slowModeSupported}
-      slowModeEnabled={slowModeEnabled}
-      slowModeScope={slowModeScope}
-      onSlowModeChange={session || isNew ? handleSlowModeChange : undefined}
       onAbortRetry={session ? handleAbortRetry : undefined}
       availableThinkingLevels={availableThinkingLevels}
       thinkingLevelMap={currentThinkingLevelMap}

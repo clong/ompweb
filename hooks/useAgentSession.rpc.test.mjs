@@ -5024,6 +5024,24 @@ test("the usage-limit badge appears mid-run and clears when the run ends without
   assert.equal(w.latest.usageLimit, undefined);
 });
 
+for (const enabled of [false, true]) {
+  test(`turning Fast ${enabled ? "on" : "off"} sends the native command and reflects OMP's result`, async () => {
+    resetWorld();
+    primeSession("s1", [userMsg("u0", "q")]);
+    world.agents.set("s1", { running: true, state: { model: { provider: "openai-codex", id: "gpt-test" }, fastModeEnabled: !enabled } });
+    const w = await mountSession("s1");
+    world.holds.push({
+      match: (method, _url, body) => method === "POST" && body?.type === "set_fast_mode",
+      produce: async () => ({ value: { success: true, data: { enabled, active: enabled } } }),
+    });
+    world.holds.push({ match: (method, url) => method === "GET" && url === "/api/sessions/s1/state", produce: () => new Promise(() => {}) });
+    await act(async () => { await w.latest.handleFastModeChange(enabled); });
+    assert.deepEqual(world.calls.findLast((call) => call.body?.type === "set_fast_mode")?.body, { type: "set_fast_mode", enabled });
+    assert.equal(w.latest.fastModeEnabled, enabled);
+    assert.equal(w.latest.fastModeActive, enabled);
+  });
+}
+
 test("the Slow toggle follows omp's per-model state and is cleared by a switch to an unsupported model", async () => {
   resetWorld();
   primeSession("s1", [userMsg("u0", "q")]);
@@ -6050,6 +6068,20 @@ test("a send to an offline host is accepted and held without a toast or recovere
   assert.deepEqual(toastCalls, []);
   assert.deepEqual(w.latest.notices, []);
   assert.deepEqual(callsTo("POST", "/api/agent/"), []);
+});
+
+test("a remote chat loads the selected host's catalog without creating a session", async () => {
+  resetWorld();
+  const w = await mountSession(null, undefined, { newSessionCwd: "/remote/work", newSessionHostId: "h1" });
+  assert.equal(callsTo("GET", "/api/models").some((call) => new URL(call.url, "http://test").searchParams.get("hostId") === "h1"), true);
+  assert.equal(callsTo("POST", "/api/agent/new").length, 0);
+  assert.equal(w.latest.modelError, null);
+});
+
+test("an existing remote session loads its owning host's catalog", async () => {
+  resetWorld();
+  await mountSession("remote-models", undefined, { session: { ...sessionInfo("remote-models"), hostId: "h2" } });
+  assert.equal(callsTo("GET", "/api/models").some((call) => new URL(call.url, "http://test").searchParams.get("hostId") === "h2"), true);
 });
 
 test("a fresh chat on a remote host creates its session there and toasts when that host is offline", async () => {
