@@ -1,4 +1,5 @@
 "use client";
+import { TerminalView } from "./TerminalView";
 import { sendAgentCommand } from "@/lib/agent-client";
 import { registerAbortHandler } from "@/hooks/useKeyboardShortcuts";
 import { Fragment, memo, useCallback, useEffect, useMemo, useRef, useState, type ReactNode, type Ref } from "react";
@@ -406,6 +407,7 @@ export function ChatWindow({ session, newSessionCwd, newSessionHostId, hostStatu
   const isMobile = useIsMobile();
   const internalChatInputRef = useRef<ChatInputHandle | null>(null);
   const composerRef = chatInputRef ?? internalChatInputRef;
+  const [tuiMode, setTuiMode] = useState(false);
   const [composerIdentityMove, setComposerIdentityMove] = useState<{ from: string; to: string; sourceDraft?: ChatDraft }>();
   const handleSessionMoved = useCallback((oldId: string, newId: string, sourceDraft?: ChatDraft) => {
     if (!onSessionMoved) return;
@@ -1115,6 +1117,10 @@ export function ChatWindow({ session, newSessionCwd, newSessionHostId, hostStatu
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
+      {session && <div role="group" aria-label="Session view" style={{ height: 42, flexShrink: 0, display: "flex", gap: 6, alignItems: "center", padding: "0 16px", borderBottom: "1px solid var(--border)", zIndex: 41, background: "var(--bg-panel)" }}>
+        {([false, true] as const).map(mode => <button key={String(mode)} type="button" aria-pressed={tuiMode === mode} onClick={() => setTuiMode(mode)} style={{ padding: "4px 12px", borderRadius: 6, color: tuiMode === mode ? "var(--accent)" : "var(--text-muted)", background: tuiMode === mode ? "var(--bg-selected)" : "transparent" }}>{mode ? "TUI" : "Chat"}</button>)}
+      </div>}
+      {session && tuiMode && <TerminalView key={session.id} sessionId={session.id} />}
       {isDragOver && (
         <div className="drop-zone-overlay pointer-events-none absolute inset-0 z-50 flex items-center justify-center backdrop-blur-[1px]">
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">

@@ -1,3 +1,4 @@
+import * as sessionsIdTerminal from "@/app/api/sessions/[id]/terminal/route";
 // The API route table: one entry per app/api/**/route.ts (server/routes.test.ts fails when they differ).
 // Static imports, not a runtime glob, so a future `bun build --compile` can bundle every handler.
 import * as agentIdBashOutput from "@/app/api/agent/[id]/bash-output/route";
@@ -149,6 +150,7 @@ export const ROUTE_MODULES: Record<string, RouteModule> = {
   "sessions/[id]/entries/[entryId]/thinking": sessionsIdEntriesEntryIdThinking,
   "sessions/[id]/export": sessionsIdExport,
   "sessions/[id]/local-file": sessionsIdLocalFile,
+  "sessions/[id]/terminal": sessionsIdTerminal,
   "sessions/[id]/matches": sessionsIdMatches,
   "sessions/[id]": sessionsId,
   "sessions/[id]/state": sessionsIdState,

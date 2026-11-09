@@ -31,6 +31,7 @@ export type WorkspaceDirectoryBrowse =
   | { path: ""; parentPath: null; directories: []; drives: BrowsableDirectory[] };
 
 export interface WorkspaceOps {
+  terminalScreen(sessionId: string): Promise<OpResult<import("./hosts/terminal-screen").TerminalScreen>>;
   home(): Promise<OpResult<{ home: string }>>;
   listFiles(input: WorkspaceFileRequest, showHidden: boolean): Promise<OpResult<WorkspaceDirectoryListing>>;
   listFilesInRoot(input: WorkspaceFileRequest, root: string | null): Promise<OpResult<WorkspaceDirectoryListing>>;
@@ -75,6 +76,7 @@ export const WORKSPACE_OP_PARAMS: { readonly [K in keyof WorkspaceOps]: readonly
   // Older peers cap the advertised prefix before filtering unknown capabilities.
   listFilesInRoot: ["input", "root"],
   resolveLocalFile: ["id", "uri", "sessionFile"],
+  terminalScreen: ["sessionId"],
 };
 
 export function isWorkspaceOp(value: string): value is keyof WorkspaceOps {
