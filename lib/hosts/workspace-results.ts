@@ -23,9 +23,6 @@ export function validWorkspaceResult(op: keyof WorkspaceOps, result: unknown): b
   if (op === "readFileChunk") return value instanceof Uint8Array && value.byteLength <= LINK_LIMITS.pieceBytes;
   if (!isRecord(value)) return false;
   switch (op) {
-    case "terminalScreen": return typeof value.screen === "string" && value.screen.length <= 2 * 1024 * 1024
-      && count(value.columns) && value.columns > 0 && value.columns <= 1000
-      && count(value.rows) && value.rows > 0 && value.rows <= 500 && typeof value.exited === "boolean";
     case "home": return text(value.home);
     case "defaultCwd": return text(value.cwd);
     case "resolveLocalFile": return text(value.path) && (value.path.startsWith("/") || isWindowsAbsolutePath(value.path));

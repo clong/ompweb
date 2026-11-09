@@ -1,4 +1,3 @@
-import { terminalScreen } from "./terminal-screen";
 import fs from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import path from "node:path";
@@ -119,7 +118,6 @@ export function createWorkspaceService(uploads: StagedUploads, emit: (id: string
   const clones = new WorkspaceClones();
   const watches = new WorkspaceWatches(async (input) => { const checked = await access(input, true); return fileInfo(checked.filePath, checked.stat); }, emit);
   const ops: WorkspaceOps = {
-    terminalScreen: id => result(() => terminalScreen(id)),
     home: () => result(async () => ({ home: homedir() })),
     browseDirectories: (requested) => result(async () => {
       if (requested !== null && typeof requested !== "string") throw invalid();
