@@ -1,6 +1,6 @@
 # ompweb
 
-This fork maintains remote model catalogs and the lightning-bolt Fast control. See [fork maintenance](docs/fork-maintenance.md) for the changes, upstream update steps, and binary builds.
+This fork maintains the Amber Terminal theme, remote model catalogs, and the lightning-bolt Fast control. See [fork maintenance](docs/fork-maintenance.md) for the changes, upstream update steps, and binary builds.
 
 [![npm version](https://img.shields.io/npm/v/@kahme247/ompweb.svg?logo=npm&color=e05d44)](https://www.npmjs.com/package/@kahme247/ompweb)
 [![node version](https://img.shields.io/node/v/@kahme247/ompweb.svg?logo=node.js&color=44cc11)](https://nodejs.org)

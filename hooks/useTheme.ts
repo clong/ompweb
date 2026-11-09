@@ -37,7 +37,7 @@ export const LIGHT_THEMES: ReadonlyArray<ThemeDefinition> = [
 ];
 
 export const DARK_THEMES: ReadonlyArray<ThemeDefinition> = [
-  { id: "omp", name: "OMP Midnight", mode: "dark", bg: "#000000", panel: "#0A0A0C", accent: "#EC5BAB" },
+  { id: "omp", name: "Amber Terminal", mode: "dark", bg: "#151217", panel: "#110E12", accent: "#EA9C46" },
   { id: "dark", name: "Dark", mode: "dark", bg: "#1B1916", panel: "#231F1B", accent: "#E07B54" },
   { id: "dracula", name: "Dracula", mode: "dark", bg: "#282A36", panel: "#21222C", accent: "#FF79C6" },
   { id: "harbor", name: "Harbor", mode: "dark", bg: "#1B1B1B", panel: "#242424", accent: "#E75A50" },

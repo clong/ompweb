@@ -129,7 +129,7 @@ test("browser chrome follows the selected theme and only follows OS changes in s
   assertTheme("light", "#F2F0EA", false, ["theme-light"], "system");
   await act(() => hook.result.current.setTheme("omp"));
   await changeOS(true);
-  assertTheme("omp", "#0A0A0C", true, ["omp"]);
+  assertTheme("omp", "#110E12", true, ["omp"]);
 
   await act(() => hook.result.current.setTheme("system"));
   assertTheme("dark", "#231F1B", true, ["dark", "theme-dark"], "system");

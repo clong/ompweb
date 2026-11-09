@@ -1881,9 +1881,10 @@ Location: `~/.omp/agent/sessions/<encoded-cwd>/<timestamp>_<uuid>.jsonl`
 
 ## Design Tokens & UI Kit (`app/globals.css`, `components/ui/`)
 
-Warm-paper (light) / warm-ember (dark) palettes; every text/background pair is
-WCAG AA-verified (measured ratios noted in `globals.css` comments). Components
-must consume these variables — no hardcoded colors.
+Warm-paper (light), warm-ember (dark), and the default Amber Terminal (`omp`)
+palettes use semantic CSS variables. Amber Terminal matches the supplied plum-black,
+amber, teal, and green terminal reference; its muted control text is brighter for
+legibility. Components must consume these variables — no hardcoded colors.
 
 ```
 color:  --bg --bg-panel --bg-hover --bg-selected --border --bg-subtle
