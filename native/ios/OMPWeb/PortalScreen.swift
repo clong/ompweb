@@ -18,10 +18,12 @@ final class PortalState: ObservableObject {
     weak var controller: PortalController?
 
     func reload() { controller?.reloadPortal() }
-    func signOut() { controller?.signOut() }
+    func signOut() async -> Bool { await controller?.signOut() ?? false }
 }
 
 struct PortalScreen: View {
+    @StateObject private var push = PushNotifications.shared
+    @Environment(\.scenePhase) private var scenePhase
     @StateObject private var state = PortalState()
     @State private var settings = false
     @State private var confirmSignOut = false
@@ -72,6 +74,7 @@ struct PortalScreen: View {
             .padding(.horizontal, 24).frame(height: 44).background(Palette.panel)
         }
         .background(Palette.canvas.ignoresSafeArea()).tint(Palette.teal)
+        .onChange(of: scenePhase) { _, phase in if phase == .active { push.scheduleSync() } }
         .sheet(isPresented: $settings) {
             NavigationStack {
                 Form {
@@ -87,14 +90,26 @@ struct PortalScreen: View {
                     }
                     Section("Connection and alerts") {
                         Text("Connect to your home network or a VPN that can reach your home network.")
-                        Text("In-app alerts work while the portal is open. Background push notifications are not included in this version.")
                     }
-                    Section { Text("ompweb for iOS · 1.0").foregroundStyle(.secondary) }
+                    Section("Notifications") {
+                        Text(push.status).font(.callout).foregroundStyle(.secondary)
+                        if push.enabled {
+                            Button("Retry registration") { Task { await push.enable() } }.disabled(push.busy)
+                            Button("Send test notification") { Task { await push.test() } }.disabled(push.busy)
+                            Button("Disable notifications", role: .destructive) { Task { _ = await push.disable() } }.disabled(push.busy)
+                        } else {
+                            Button("Enable notifications") { Task { await push.enable() } }.disabled(push.busy)
+                        }
+                        Button("Notification settings in iOS") {
+                            if let url = URL(string: UIApplication.openNotificationSettingsURLString) { UIApplication.shared.open(url) }
+                        }
+                    }
+                    Section { Text("ompweb for iOS · 1.1").foregroundStyle(.secondary) }
                 }
                 .navigationTitle("App settings").navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { settings = false } } }
                 .confirmationDialog("Sign out of ompweb on this device?", isPresented: $confirmSignOut, titleVisibility: .visible) {
-                    Button("Sign out", role: .destructive) { settings = false; state.signOut() }
+                    Button("Sign out", role: .destructive) { Task { if await state.signOut() { settings = false } } }
                 } message: { Text("This clears the app’s saved sign-in and local portal preferences.") }
             }.tint(Palette.teal)
         }

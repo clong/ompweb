@@ -22,6 +22,15 @@ enum PortalPolicy {
         (url.port == nil || url.port == 443) && url.user == nil && url.password == nil
     }
 
+    static func notificationURL(sessionID: String?) -> URL? {
+        guard let sessionID else { return nil }
+        if sessionID.isEmpty { return home }
+        guard sessionID.range(of: "^[A-Za-z0-9_-]{1,256}$", options: .regularExpression) != nil else { return nil }
+        var parts = URLComponents(url: home, resolvingAgainstBaseURL: false)!
+        parts.queryItems = [URLQueryItem(name: "session", value: sessionID)]
+        return parts.url
+    }
+
     static func safeFilename(_ name: String) -> String {
         let leaf = (name.replacingOccurrences(of: "\\", with: "/") as NSString).lastPathComponent
         let cleaned = leaf.components(separatedBy: .controlCharacters).joined()

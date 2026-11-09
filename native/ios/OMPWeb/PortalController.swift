@@ -41,7 +41,7 @@ final class PortalController: UIViewController, WKNavigationDelegate, WKUIDelega
             webView.observe(\.canGoBack, options: [.new]) { [weak self] _, _ in self?.updateState() },
             webView.observe(\.canGoForward, options: [.new]) { [weak self] _, _ in self?.updateState() }
         ]
-        webView.load(URLRequest(url: PortalPolicy.home))
+        webView.load(URLRequest(url: PushNotifications.shared.attach(self) ?? PortalPolicy.home))
     }
 
     nonisolated private func updateState() {
@@ -61,7 +61,13 @@ final class PortalController: UIViewController, WKNavigationDelegate, WKUIDelega
         else { webView.load(URLRequest(url: PortalPolicy.home)) }
     }
 
-    func signOut() {
+    func signOut() async -> Bool {
+        if PushNotifications.shared.enabled, !(await PushNotifications.shared.disable()) { return false }
+        clearSignIn()
+        return true
+    }
+
+    private func clearSignIn() {
         webView.stopLoading()
         webView.configuration.websiteDataStore.removeData(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(), modifiedSince: .distantPast) { [weak self] in
             self?.webView.load(URLRequest(url: PortalPolicy.home))
@@ -122,6 +128,7 @@ final class PortalController: UIViewController, WKNavigationDelegate, WKUIDelega
         decisionHandler(!response.canShowMIMEType || disposition.lowercased().hasPrefix("attachment") ? .download : .allow)
     }
 
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) { PushNotifications.shared.scheduleSync() }
     func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) { state.failure = nil }
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) { showFailure(error) }
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) { showFailure(error) }

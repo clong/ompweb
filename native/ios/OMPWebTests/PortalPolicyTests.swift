@@ -2,6 +2,14 @@ import XCTest
 @testable import OMPWeb
 
 final class PortalPolicyTests: XCTestCase {
+    func testPushNavigationAcceptsOnlySessionIdentifiers() {
+        XCTAssertEqual(PortalPolicy.notificationURL(sessionID: "abc-123")?.absoluteString, "https://ompweb.clong.network?session=abc-123")
+        XCTAssertEqual(PortalPolicy.notificationURL(sessionID: ""), PortalPolicy.home)
+        XCTAssertNil(PortalPolicy.notificationURL(sessionID: nil))
+        for value in ["https://evil.test", "../login", "abc&next=evil", String(repeating: "x", count: 257)] {
+            XCTAssertNil(PortalPolicy.notificationURL(sessionID: value))
+        }
+    }
     func testPortalRequiresExactHTTPSOrigin() {
         for address in ["https://ompweb.clong.network", "https://ompweb.clong.network:443/login?next=%2F", "https://OMPWEB.CLONG.NETWORK/api/sessions"] {
             XCTAssertEqual(PortalPolicy.destination(for: URL(string: address)!), .portal)

@@ -1,3 +1,4 @@
+import { publishIOSNotification } from "./apns";
 import webpush from "web-push";
 import en from "./i18n/locales/en.json";
 import ja from "./i18n/locales/ja.json";
@@ -190,6 +191,7 @@ async function sendPush(device: NotificationDevice, event: NotificationEvent, re
 
 /** Never throws: callers publish from the RPC frame path, and a store failure must not cost them the frame. */
 export function publishNotification(event: NotificationEvent): void {
+  void publishIOSNotification(event).catch(() => console.warn("[ios-push] delivery unavailable"));
   const state = hub();
   let devices: NotificationDevice[] = [];
   try {

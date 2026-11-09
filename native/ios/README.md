@@ -14,7 +14,7 @@ xcodebuild -project native/ios/OMPWeb.xcodeproj -scheme OMPWeb \
   -derivedDataPath /tmp/ompweb-ios CODE_SIGNING_ALLOWED=NO test
 ```
 
-Replace the simulator name with one installed on your Mac. The unit tests check exact-origin URL handling, blocked executable/credential URLs, blob export origins, and download filename sanitization.
+Replace the simulator name with one installed on your Mac. The unit tests check exact-origin URL handling, blocked executable/credential URLs, blob export origins, download filename sanitization, and safe notification deep links.
 
 ## Sign-in and connection behavior
 
@@ -22,9 +22,9 @@ Sign in with the existing portal password. The app uses [WebKit's persistent web
 
 The phone needs home-network access or a VPN route to the portal. HTTPS certificate validation uses WebKit's default behavior. Failed connections display retry guidance; the app does not bypass certificate errors. Returning to the foreground leaves the current page intact so a draft is not discarded by an automatic reload.
 
-Only the portal's exact HTTPS origin stays in the embedded view. User-activated external HTTP(S) links open in a separate Safari view. Other schemes and credential-bearing URLs are blocked. The app does not inject scripts into the portal or expose a JavaScript-to-native bridge.
+Only the portal's exact HTTPS origin stays in the embedded view. User-activated external HTTP(S) links open in a separate Safari view. Other schemes and credential-bearing URLs are blocked. The app does not inject scripts into the portal or expose a JavaScript-to-native bridge. Native push registration uses the existing WebKit sign-in cookie for a fixed, same-origin HTTPS API request; redirects are refused.
 
-**App settings → Sign out on this device** clears this app's cookies, caches, and local portal preferences. It does not sign out another browser or stop remote OMP sessions.
+**App settings → Sign out on this device** first removes any native push registration, then clears this app's cookies, caches, and local portal preferences. It reports a failed deregistration before clearing sign-in. It does not sign out another browser or stop remote OMP sessions.
 
 ## Files, media, and alerts
 
@@ -32,11 +32,11 @@ Portal downloads use WebKit's authenticated download mechanism and open the iOS 
 
 Web file inputs use the system picker. Camera and microphone access require a user action and iOS permission; the app supplies purpose strings and only permits WebKit's permission prompt for the portal origin. Media capture and file sharing need validation on a physical device.
 
-In-app portal alerts work while the page is open. This version does not register with APNs or deliver background push notifications. OMP continues running on the remote host when iOS suspends the app; iOS does not keep the embedded page's live connection running indefinitely. The existing Home Screen web app remains a separate installation with its own sign-in and notification subscription.
+In-app portal alerts work while the page is open. The app now supports native background APNs alerts for session completion, input requests, and errors. Configure the server signing key and enable notifications in App settings; see [iOS push setup](../../docs/ios-push.md). OMP continues running on the remote host when iOS suspends the app; iOS does not keep the embedded page's live connection running indefinitely. The existing Home Screen web app remains a separate installation with its own sign-in and notification subscription.
 
-## Validation of this first build
+## Validation
 
-The app compiled for the iPhone simulator and as a signed iOS device archive with Xcode 27.1. Four native unit tests passed on the iPhone 18 Pro simulator. Visual checks confirmed that the live HTTPS portal reaches its password form and that the native settings sheet opens and closes correctly. Authenticated conversations, microphone/camera capture, file exports, and background/foreground reconnects still need an on-device smoke test after sign-in.
+The app compiled for the iPhone simulator and as a signed iOS device archive with Xcode 27.1. Five native unit tests passed on the iPhone 18 Pro simulator. Visual checks confirmed that the live HTTPS portal reaches its password form and that the native settings sheet opens and closes correctly. The APNs server and iOS code compile and their unit tests pass. Live push delivery remains unverified until the server signing key is configured and a notification is received on the physical iPhone. Authenticated conversations, microphone/camera capture, file exports, and background/foreground reconnects also need an on-device smoke test after sign-in.
 
 ## Maintain the native app with the fork
 
