@@ -341,11 +341,14 @@ export function AppShell({ appName }: { appName: string }) {
       advanceAppUpdateVisibleStage(next);
     }
   }, [advanceAppUpdateVisibleStage]);
-  // On mobile the sidebar is an overlay drawer; hide it by default so the chat
-  // is visible on load. Runs once the breakpoint resolves after hydration.
+  // A phone launch without a chat should land on the workspace list. Keep
+  // session/notification and cwd links focused on their requested conversation.
   useEffect(() => {
-    if (isMobile) setSidebarOpen(false);
-  }, [isMobile]);
+    if (isMobile) {
+      setSidebarOpen(!selectedSession?.id && !newSessionCwd
+        && !initialNavigation.sessionId && !initialNavigation.requestedCwd);
+    }
+  }, [isMobile, selectedSession?.id, newSessionCwd, initialNavigation]);
   useEffect(() => {
     setMobileSidebarReady(true);
   }, []);
